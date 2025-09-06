@@ -1,15 +1,12 @@
-
-# Use lightweight JDK base image
-FROM eclipse-temurin:17-jdk-jammy
-
-# Set working directory inside container
+# Stage 1: Build the JAR using Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the jar file from your build context
-COPY target/GetWellSoon-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose default Spring Boot port
+# Stage 2: Run the Spring Boot app
+FROM eclipse-temurin:17-jdk-jammy
+WORKDIR /app
+COPY --from=build /app/target/GetWellSoon-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8081
-
-# Run the Spring Boot app
 ENTRYPOINT ["java", "-jar", "app.jar"]
